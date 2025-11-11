@@ -1,0 +1,89 @@
+[0.009s] Invoking command in '/home/bejobarokah/thesis/build/ur_simulation_gz': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/bejobarokah/thesis/src/ur_simulation_gz/ur_simulation_gz -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/bejobarokah/thesis/install/ur_simulation_gz
+[0.066s] -- The C compiler identification is GNU 13.3.0
+[0.124s] -- The CXX compiler identification is GNU 13.3.0
+[0.142s] -- Detecting C compiler ABI info
+[0.237s] -- Detecting C compiler ABI info - done
+[0.246s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.247s] -- Detecting C compile features
+[0.247s] -- Detecting C compile features - done
+[0.257s] -- Detecting CXX compiler ABI info
+[0.361s] -- Detecting CXX compiler ABI info - done
+[0.371s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.371s] -- Detecting CXX compile features
+[0.372s] -- Detecting CXX compile features - done
+[0.377s] -- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[0.538s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[0.602s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.667s] -- Found rclpy: 7.1.4 (/opt/ros/jazzy/share/rclpy/cmake)
+[0.767s] -- Found launch_testing_ament_cmake: 3.4.4 (/opt/ros/jazzy/share/launch_testing_ament_cmake/cmake)
+[0.771s] -- Found python_cmake_module: 0.11.1 (/opt/ros/jazzy/share/python_cmake_module/cmake)
+[0.895s] -- Found PythonExtra: /usr/bin/python3  
+[0.900s] -- Found ament_cmake_pytest: 2.5.4 (/opt/ros/jazzy/share/ament_cmake_pytest/cmake)
+[1.312s] -- Configuring done (1.3s)
+[1.316s] -- Generating done (0.0s)
+[1.318s] -- Build files have been written to: /home/bejobarokah/thesis/build/ur_simulation_gz
+[1.324s] Invoked command in '/home/bejobarokah/thesis/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/bejobarokah/thesis/src/ur_simulation_gz/ur_simulation_gz -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/bejobarokah/thesis/install/ur_simulation_gz
+[1.325s] Invoking command in '/home/bejobarokah/thesis/build/ur_simulation_gz': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/bejobarokah/thesis/build/ur_simulation_gz -- -j12 -l12
+[1.392s] Built target ament_cmake_python_symlink_ur_simulation_gz
+[1.599s] running egg_info
+[1.599s] creating ur_simulation_gz.egg-info
+[1.620s] writing ur_simulation_gz.egg-info/PKG-INFO
+[1.621s] writing dependency_links to ur_simulation_gz.egg-info/dependency_links.txt
+[1.621s] writing top-level names to ur_simulation_gz.egg-info/top_level.txt
+[1.621s] writing manifest file 'ur_simulation_gz.egg-info/SOURCES.txt'
+[1.683s] reading manifest file 'ur_simulation_gz.egg-info/SOURCES.txt'
+[1.683s] writing manifest file 'ur_simulation_gz.egg-info/SOURCES.txt'
+[1.708s] Built target ament_cmake_python_build_ur_simulation_gz_egg
+[1.722s] Invoked command in '/home/bejobarokah/thesis/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/bejobarokah/thesis/build/ur_simulation_gz -- -j12 -l12
+[1.734s] Invoking command in '/home/bejobarokah/thesis/build/ur_simulation_gz': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/bejobarokah/thesis/build/ur_simulation_gz
+[1.743s] -- Install configuration: ""
+[1.743s] -- Execute custom install script
+[1.744s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/config/ur_controllers.yaml
+[1.755s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_control.launch.py
+[1.766s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_ddpg.launch.py
+[1.776s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_maddpg.launch.py
+[1.787s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_moveit.launch.py
+[1.797s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.ros2_control.xacro
+[1.807s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro
+[1.818s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro.urdf
+[1.828s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro.urdf.sdf
+[1.839s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/resources/environment.sdf
+[1.849s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/__init__.py
+[1.859s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/ddpg.py
+[1.870s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/maddpg.py
+[1.880s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/reset_subporcess.py
+[1.890s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/pythonpath.sh
+[1.900s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/pythonpath.dsv
+[1.911s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/PKG-INFO
+[1.922s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/SOURCES.txt
+[1.932s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/dependency_links.txt
+[1.942s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/top_level.txt
+[1.953s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/__init__.py
+[1.964s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/ddpg.py
+[1.976s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/maddpg.py
+[1.986s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/reset_subporcess.py
+[1.997s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/end_effector_pos.py
+[2.008s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/maddpg_single_object.py
+[2.018s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/simple_subscriber.py
+[2.029s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/simple_action_client.py
+[2.039s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ament_index/resource_index/package_run_dependencies/ur_simulation_gz
+[2.050s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ament_index/resource_index/parent_prefix_path/ur_simulation_gz
+[2.060s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.sh
+[2.071s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.dsv
+[2.082s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.sh
+[2.092s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.dsv
+[2.103s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.bash
+[2.113s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.sh
+[2.124s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.zsh
+[2.135s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.dsv
+[2.145s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/package.dsv
+[2.155s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ament_index/resource_index/packages/ur_simulation_gz
+[2.166s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig.cmake
+[2.176s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig-version.cmake
+[2.186s] -- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/package.xml
+[2.232s] Listing '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz'...
+[2.232s] Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/__init__.py'...
+[2.232s] Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/ddpg.py'...
+[2.232s] Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/maddpg.py'...
+[2.232s] Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/reset_subporcess.py'...
+[2.239s] Invoked command in '/home/bejobarokah/thesis/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/bejobarokah/thesis/build/ur_simulation_gz

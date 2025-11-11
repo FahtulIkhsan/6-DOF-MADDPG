@@ -1,0 +1,1 @@
+/home/bejobarokah/thesis/src/ur_simulation_gz/ur_simulation_gz/scripts/end_effector_pos.py

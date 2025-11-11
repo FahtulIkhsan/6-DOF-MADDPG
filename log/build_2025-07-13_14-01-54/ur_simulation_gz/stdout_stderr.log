@@ -1,0 +1,83 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Found rclpy: 7.1.4 (/opt/ros/jazzy/share/rclpy/cmake)
+-- Found launch_testing_ament_cmake: 3.4.4 (/opt/ros/jazzy/share/launch_testing_ament_cmake/cmake)
+-- Found python_cmake_module: 0.11.1 (/opt/ros/jazzy/share/python_cmake_module/cmake)
+-- Found PythonExtra: /usr/bin/python3  
+-- Found ament_cmake_pytest: 2.5.4 (/opt/ros/jazzy/share/ament_cmake_pytest/cmake)
+-- Configuring done (1.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/bejobarokah/thesis/build/ur_simulation_gz
+Built target ament_cmake_python_symlink_ur_simulation_gz
+running egg_info
+creating ur_simulation_gz.egg-info
+writing ur_simulation_gz.egg-info/PKG-INFO
+writing dependency_links to ur_simulation_gz.egg-info/dependency_links.txt
+writing top-level names to ur_simulation_gz.egg-info/top_level.txt
+writing manifest file 'ur_simulation_gz.egg-info/SOURCES.txt'
+reading manifest file 'ur_simulation_gz.egg-info/SOURCES.txt'
+writing manifest file 'ur_simulation_gz.egg-info/SOURCES.txt'
+Built target ament_cmake_python_build_ur_simulation_gz_egg
+-- Install configuration: ""
+-- Execute custom install script
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/config/ur_controllers.yaml
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_control.launch.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_ddpg.launch.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_maddpg.launch.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_moveit.launch.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.ros2_control.xacro
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro.urdf
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro.urdf.sdf
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/resources/environment.sdf
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/__init__.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/ddpg.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/maddpg.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/ur_simulation_gz/reset_subporcess.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/pythonpath.sh
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/pythonpath.dsv
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/PKG-INFO
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/SOURCES.txt
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/dependency_links.txt
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz-2.2.0-py3.12.egg-info/top_level.txt
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/__init__.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/ddpg.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/maddpg.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/reset_subporcess.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/end_effector_pos.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/maddpg_single_object.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/simple_subscriber.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/lib/ur_simulation_gz/simple_action_client.py
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ament_index/resource_index/package_run_dependencies/ur_simulation_gz
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ament_index/resource_index/parent_prefix_path/ur_simulation_gz
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.sh
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.dsv
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.sh
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.dsv
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.bash
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.sh
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.zsh
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.dsv
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/package.dsv
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ament_index/resource_index/packages/ur_simulation_gz
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig.cmake
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig-version.cmake
+-- Symlinking: /home/bejobarokah/thesis/install/ur_simulation_gz/share/ur_simulation_gz/package.xml
+Listing '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz'...
+Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/__init__.py'...
+Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/ddpg.py'...
+Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/maddpg.py'...
+Compiling '/home/bejobarokah/thesis/install/ur_simulation_gz/lib/python3.12/site-packages/ur_simulation_gz/reset_subporcess.py'...
