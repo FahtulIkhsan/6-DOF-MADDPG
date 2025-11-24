@@ -26,10 +26,10 @@ import json
 import sys
 
 # Seed
-seed = 618
+seed = 938
 torch.manual_seed(seed)
 
-rng = np.random.default_rng(0)
+rng = np.random.default_rng(seed)
 
 # Devices
 is_fork = multiprocessing.get_start_method() == "fork"
@@ -45,10 +45,6 @@ folder_path = os.path.join(home_dir, BUFFER_FOLDER_NAME)
 scratch_path = os.path.join(folder_path, BUFFER_STORAGE_NAME)
 
 OBS_DIMS = 21
-ACTION_DIM = 1
-NUM_AGENTS = 6
-IS_MADDPG = True
-SHARE_PARAMETERS_POLICY = False
 BUFFER_SIZE = 1000000
 MINIMUM_BUFFER_SIZE = 50001
 BATCH_SIZE = 256
@@ -67,6 +63,18 @@ INITIAL_BETA = 0.4
 FINAL_BETA = 1.0
 BETA_ANNEALING_STEPS = 21000
 SIGMA_INIT = 0.9
+
+IS_MADDPG = False
+if IS_MADDPG:
+    ACTION_DIM = 1
+    NUM_AGENTS = 6
+    CENTRALIZED = True
+    SHARE_PARAMETERS_POLICY = False
+else:
+    ACTION_DIM = 6
+    NUM_AGENTS = 1
+    CENTRALIZED = False
+    SHARE_PARAMETERS_POLICY = True
 
 POPULATING_REPLAY_BUFFER = False
 if not POPULATING_REPLAY_BUFFER:
@@ -168,7 +176,7 @@ class MADDPG:
         n_agent_inputs=(OBS_DIMS + ACTION_DIM),
         n_agent_outputs=1,
         n_agents=NUM_AGENTS,
-        centralized=IS_MADDPG,
+        centralized=CENTRALIZED,
         share_params=SHARE_PARAMETERS_POLICY,
         device=device,
         depth=NETWORK_DEPTH,
@@ -333,7 +341,8 @@ class MADDPG:
         else:
             action = rng.uniform(low=-1.0, high=1.0, size=6)
             act = torch.tensor(action, device=device, dtype=torch.float32)
-            act = act.unsqueeze(1)
+            if IS_MADDPG:
+                act = act.unsqueeze(1)
             self.action_result.set("action", act, inplace=True)
             print(f"Uniform Action: {self.action_result["action"]}")
 
@@ -352,7 +361,7 @@ class MADDPG:
                     "observation": torch.zeros((NUM_AGENTS, OBS_DIMS), dtype=torch.float32),
                     "reward": torch.zeros((NUM_AGENTS, 1), dtype=torch.float32),
                     "terminated": torch.zeros((NUM_AGENTS, 1), dtype=torch.bool),
-                    "done": torch.zeros((NUM_AGENTS, 1), dtype=torch.bool), # Using "done" as requested
+                    "done": torch.zeros((NUM_AGENTS, 1), dtype=torch.bool),
                 }),
             })
             self.replay_buffer.add(dummy_data)
@@ -399,12 +408,13 @@ class MADDPG:
                 data.set(("next", "observation"), tens_next_obs, inplace=True)
             loss_vals = self.loss_module(subdata)
 
-            # Since there 6 agents with different td_error, find the td_error mean for the sample
-            per_agent_td_error = loss_vals["td_error"]
-            priority_epsilon = 1e-6
-            per_transition_priority = per_agent_td_error.abs().mean(dim=1) + priority_epsilon
-            per_transition_priority = per_transition_priority.unsqueeze(1)
-            subdata.set(self.replay_buffer.priority_key, per_transition_priority, inplace=True)
+            if IS_MADDPG:
+                # Since there 6 agents with different td_error, find the td_error mean for the sample
+                per_agent_td_error = loss_vals["td_error"]
+                priority_epsilon = 1e-6
+                per_transition_priority = per_agent_td_error.abs().mean(dim=1) + priority_epsilon
+                per_transition_priority = per_transition_priority.unsqueeze(1)
+                subdata.set(self.replay_buffer.priority_key, per_transition_priority, inplace=True)
 
             for loss_name in ["loss_actor", "loss_value"]:
                 loss = loss_vals[loss_name]
@@ -516,6 +526,9 @@ class MADDPG:
             "obs_var": self.obs_var,
             "obs_m2": self.obs_m2
         }
+
+        print(f"Finished with IS_MADDPG : {IS_MADDPG}")
+        print(f"Finished with seed : {seed}")
 
         with open("obs_data.json", "w") as file:
             json.dump(obs_data, file, indent=4)
