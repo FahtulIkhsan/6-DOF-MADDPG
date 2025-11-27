@@ -68,7 +68,7 @@ class Robot_Arm(Node) :
         self._joint_limit = [1.57, 0.27, 0.75, 3.2, 3.2, 3.2]
 
         self._trajectory_duration = 3.0
-        self._timeout_sec = 100.0
+        self._timeout_sec = 300.0
         self._joint_states = None
         self._box_states = None
         self._processing = False

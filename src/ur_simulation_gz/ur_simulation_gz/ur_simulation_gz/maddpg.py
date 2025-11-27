@@ -26,7 +26,7 @@ import json
 import sys
 
 # Seed
-seed = 938
+seed = 0
 torch.manual_seed(seed)
 
 rng = np.random.default_rng(seed)
@@ -51,29 +51,30 @@ BATCH_SIZE = 256
 NETWORK_SIZE = 512
 NETWORK_DEPTH = 2
 GAMMA = 0.99
-POLYAK_TAU = 1e-3
-ACTOR_LR = 3e-4  # Learning rate
-CRITIC_LR = 3e-3
-WEIGHT_DECAY = 1e-1
-EXPLORE_ANNEALING_STEPS = 20000
+POLYAK_TAU = 5e-3
+ACTOR_LR = 1e-3  # Learning rate
+CRITIC_LR = 1e-2
+WEIGHT_DECAY = 1e-2
+EXPLORE_ANNEALING_STEPS = 15000
 MAX_FRAME = 100
 MAX_EPISODE = 300
 ALPHA = 0.6
 INITIAL_BETA = 0.4
 FINAL_BETA = 1.0
-BETA_ANNEALING_STEPS = 21000
+BETA_ANNEALING_STEPS = 29000
 SIGMA_INIT = 0.9
+SIGMA_END = 0.05
 
 IS_MADDPG = False
 if IS_MADDPG:
     ACTION_DIM = 1
     NUM_AGENTS = 6
-    CENTRALIZED = True
+    CRITIC_CENTRALIZED = True
     SHARE_PARAMETERS_POLICY = False
 else:
     ACTION_DIM = 6
     NUM_AGENTS = 1
-    CENTRALIZED = False
+    CRITIC_CENTRALIZED = False
     SHARE_PARAMETERS_POLICY = True
 
 POPULATING_REPLAY_BUFFER = False
@@ -159,6 +160,7 @@ class MADDPG:
     exploration_module = AdditiveGaussianModule(
             spec=action_spec,
             sigma_init=SIGMA_INIT,
+            sigma_end=SIGMA_END,
             annealing_num_steps=EXPLORE_ANNEALING_STEPS
         )
 
@@ -176,7 +178,7 @@ class MADDPG:
         n_agent_inputs=(OBS_DIMS + ACTION_DIM),
         n_agent_outputs=1,
         n_agents=NUM_AGENTS,
-        centralized=CENTRALIZED,
+        centralized=CRITIC_CENTRALIZED,
         share_params=SHARE_PARAMETERS_POLICY,
         device=device,
         depth=NETWORK_DEPTH,
@@ -214,8 +216,10 @@ class MADDPG:
     loss_module = DDPGLoss(
         actor_network=actor,
         value_network=critic,
+        delay_actor=True,
         delay_value=True,
-        loss_function="l2"
+        loss_function="l2",
+        reduction="none"
     )
     loss_module.make_value_estimator(ValueEstimators.TD0, gamma=GAMMA)
 
@@ -324,13 +328,13 @@ class MADDPG:
         std_obs = self.standardize_observations(observations)
         std_obs = self.list_to_tensor(std_obs)
         std_obs = torch.clamp(std_obs, min = -5.0, max = 5.0)
-        print(f"Standardized Observation: {std_obs[0]}")
+        # print(f"Standardized Observation: {std_obs[0]}")
         dict_obs = TensorDict({"observation": std_obs})
         result = self.exploration_policy(dict_obs)
 
         self.action_result = result
         obs = self.list_to_tensor(observations)
-        print(f"Unstandardized Observation: {obs[0]}")
+        # print(f"Unstandardized Observation: {obs[0]}")
         self.action_result.set("observation", obs, inplace=True)
 
         if not POPULATING_REPLAY_BUFFER:
@@ -390,8 +394,8 @@ class MADDPG:
 
         self.replay_buffer.add(replay_buffer_data)
 
-        print(f"Observation: {replay_buffer_data["observation"][0]}")
-        print(f"Next Observation: {replay_buffer_data["next"]["observation"][0]}")
+        # print(f"Observation: {replay_buffer_data["observation"][0]}")
+        # print(f"Next Observation: {replay_buffer_data["next"]["observation"][0]}")
             
         # print(f"Added data to replay buffer : {replay_buffer_data}")
     
@@ -406,7 +410,11 @@ class MADDPG:
                 next_obs = self.standardize_observations(data["next"]["observation"][0].tolist())
                 tens_next_obs = self.list_to_tensor(next_obs)
                 data.set(("next", "observation"), tens_next_obs, inplace=True)
+            # print(f"subdata : {subdata}")
+            weight = subdata["_weight"].unsqueeze(-1)
+            # print(f"Subdata _weight unsqueezed : {weight.shape}")
             loss_vals = self.loss_module(subdata)
+            # print(f"loss_vals : {loss_vals}")
 
             if IS_MADDPG:
                 # Since there 6 agents with different td_error, find the td_error mean for the sample
@@ -418,31 +426,41 @@ class MADDPG:
 
             for loss_name in ["loss_actor", "loss_value"]:
                 loss = loss_vals[loss_name]
-                print(f"{loss_name} : {loss}")
                 
                 optimizer = self.optimiser[loss_name]
-
-                loss.backward()
                 
                 if loss_name == "loss_actor":
+                    loss = loss.mean()
+                    print(f"Actor loss mean : {loss}")
+                    # print(f"Actor loss is tensor : {isinstance(loss, torch.Tensor)}")
+                    loss.backward()
+
                     loss_raw = loss.item()
                     self.current_episode_loss_actor.append(loss_raw)
+
                     torch.nn.utils.clip_grad_norm_(self.loss_module.actor_network_params.flatten_keys().values(), max_norm=1.0)
                 elif loss_name == "loss_value":
+                    loss = loss * weight
+                    # print(f"Critic loss broadcast : {loss}")
+                    loss = loss.mean()
+                    print(f"Critic loss mean : {loss}")
+                    # print(f"Critic loss is tensor : {isinstance(loss, torch.Tensor)}")
+                    loss.backward()
+
                     loss_raw = loss.item()
                     self.current_episode_loss_value.append(loss_raw)
 
-                    total_norm = 0
-                    params_iterable = self.loss_module.value_network_params.flatten_keys().values()
-                    for p in params_iterable:
-                        if p.grad is not None:
-                            # p is the parameter tensor (e.g., weights)
-                            # p.grad is the corresponding gradient tensor
-                            print(f"Parameter shape: {p.shape}\nGradient norm: {p.grad.norm()}")
-                            param_norm = p.grad.data.norm(2)
-                            total_norm += param_norm.item() ** 2
-                    total_norm = total_norm ** 0.5
-                    print(f"Total gradient norm: {total_norm}")
+                    # total_norm = 0
+                    # params_iterable = self.loss_module.value_network_params.flatten_keys().values()
+                    # for p in params_iterable:
+                    #     if p.grad is not None:
+                    #         # p is the parameter tensor (e.g., weights)
+                    #         # p.grad is the corresponding gradient tensor
+                    #         print(f"Parameter shape: {p.shape}\nGradient norm: {p.grad.norm()}")
+                    #         param_norm = p.grad.data.norm(2)
+                    #         total_norm += param_norm.item() ** 2
+                    # total_norm = total_norm ** 0.5
+                    # print(f"Total gradient norm: {total_norm}")
                     
                     torch.nn.utils.clip_grad_norm_(self.loss_module.value_network_params.flatten_keys().values(), max_norm=1.0)
                 optimizer.step()
@@ -461,6 +479,7 @@ class MADDPG:
 
         print(f"Episode : {self.current_episode}")
         print(f"Frame : {self.frame}")
+        print(f"PER Beta : {self.replay_buffer.sampler.beta}")
 
     def end_frame_check(self):
         if POPULATING_REPLAY_BUFFER and self.frame >= (5*MAX_FRAME):
