@@ -52,13 +52,14 @@ NETWORK_SIZE = 512
 NETWORK_DEPTH = 2
 GAMMA = 0.99
 POLYAK_TAU = 1e-3
-ACTOR_LR = 1e-3  # Learning rate
-CRITIC_LR = 1e-2
-WEIGHT_DECAY = 1e-2
-EXPLORE_ANNEALING_STEPS = 15000
+ACTOR_LR = 1e-4  # Learning rate
+ACTOR_WEIGHT_DECAY = 0.0
+CRITIC_LR = 1e-3
+CRITIC_WEIGHT_DECAY = 0.0
+EXPLORE_ANNEALING_STEPS = 20000
 MAX_FRAME = 100
 MAX_EPISODE = 300
-ALPHA = 0.6
+ALPHA = 0.4
 INITIAL_BETA = 0.4
 FINAL_BETA = 1.0
 BETA_ANNEALING_STEPS = 29000
@@ -227,10 +228,10 @@ class MADDPG:
 
     optimiser = {
         "loss_actor": torch.optim.AdamW(
-            loss_module.actor_network_params.flatten_keys().values(), lr=ACTOR_LR, weight_decay=WEIGHT_DECAY
+            loss_module.actor_network_params.flatten_keys().values(), lr=ACTOR_LR, weight_decay=ACTOR_WEIGHT_DECAY
         ),
         "loss_value": torch.optim.AdamW(
-            loss_module.value_network_params.flatten_keys().values(), lr=CRITIC_LR, weight_decay=WEIGHT_DECAY
+            loss_module.value_network_params.flatten_keys().values(), lr=CRITIC_LR, weight_decay=CRITIC_WEIGHT_DECAY
         )
     }
 
@@ -328,13 +329,13 @@ class MADDPG:
         std_obs = self.standardize_observations(observations)
         std_obs = self.list_to_tensor(std_obs)
         std_obs = torch.clamp(std_obs, min = -5.0, max = 5.0)
-        # print(f"Standardized Observation: {std_obs[0]}")
+        # set the observation to be standardized observation for network input
         dict_obs = TensorDict({"observation": std_obs})
         result = self.exploration_policy(dict_obs)
 
         self.action_result = result
         obs = self.list_to_tensor(observations)
-        # print(f"Unstandardized Observation: {obs[0]}")
+        # set the observation to unstandarized observation to be stored in replay buffer
         self.action_result.set("observation", obs, inplace=True)
 
         if not POPULATING_REPLAY_BUFFER:
@@ -370,9 +371,11 @@ class MADDPG:
             })
             self.replay_buffer.add(dummy_data)
             self.replay_buffer.loads(folder_path)
+            self.replay_buffer.sampler.alpha = ALPHA
             self.replay_buffer.sampler.beta = INITIAL_BETA
             print(f"Replay Buffer Length : {len(self.replay_buffer)}")
             print(f"First Sample : {self.replay_buffer.sample()}")
+            print(f"Replab Buffer PER Alpha : {self.replay_buffer.sampler.alpha}")
             print(f"Replab Buffer PER Beta : {self.replay_buffer.sampler.beta}")
             self.replay_buffer_initialized = True
 
@@ -412,11 +415,8 @@ class MADDPG:
                 next_obs = self.standardize_observations(data["next"]["observation"][0].tolist())
                 tens_next_obs = self.list_to_tensor(next_obs)
                 data.set(("next", "observation"), tens_next_obs, inplace=True)
-            # print(f"subdata : {subdata}")
             weight = subdata["_weight"].unsqueeze(-1)
-            # print(f"Subdata _weight unsqueezed : {weight.shape}")
             loss_vals = self.loss_module(subdata)
-            # print(f"loss_vals : {loss_vals}")
 
             if IS_MADDPG:
                 # Since there 6 agents with different td_error, find the td_error mean for the sample
@@ -433,8 +433,6 @@ class MADDPG:
                 
                 if loss_name == "loss_actor":
                     loss = loss.mean()
-                    print(f"Actor loss mean : {loss}")
-                    # print(f"Actor loss is tensor : {isinstance(loss, torch.Tensor)}")
                     loss.backward()
 
                     loss_raw = loss.item()
@@ -443,26 +441,11 @@ class MADDPG:
                     torch.nn.utils.clip_grad_norm_(self.loss_module.actor_network_params.flatten_keys().values(), max_norm=1.0)
                 elif loss_name == "loss_value":
                     loss = loss * weight
-                    # print(f"Critic loss broadcast : {loss}")
                     loss = loss.mean()
-                    print(f"Critic loss mean : {loss}")
-                    # print(f"Critic loss is tensor : {isinstance(loss, torch.Tensor)}")
                     loss.backward()
 
                     loss_raw = loss.item()
                     self.current_episode_loss_value.append(loss_raw)
-
-                    # total_norm = 0
-                    # params_iterable = self.loss_module.value_network_params.flatten_keys().values()
-                    # for p in params_iterable:
-                    #     if p.grad is not None:
-                    #         # p is the parameter tensor (e.g., weights)
-                    #         # p.grad is the corresponding gradient tensor
-                    #         print(f"Parameter shape: {p.shape}\nGradient norm: {p.grad.norm()}")
-                    #         param_norm = p.grad.data.norm(2)
-                    #         total_norm += param_norm.item() ** 2
-                    # total_norm = total_norm ** 0.5
-                    # print(f"Total gradient norm: {total_norm}")
                     
                     torch.nn.utils.clip_grad_norm_(self.loss_module.value_network_params.flatten_keys().values(), max_norm=1.0)
                 optimizer.step()
@@ -481,7 +464,6 @@ class MADDPG:
 
         print(f"Episode : {self.current_episode}")
         print(f"Frame : {self.frame}")
-        print(f"PER Beta : {self.replay_buffer.sampler.beta}")
 
     def end_frame_check(self):
         if POPULATING_REPLAY_BUFFER and self.frame >= (5*MAX_FRAME):
