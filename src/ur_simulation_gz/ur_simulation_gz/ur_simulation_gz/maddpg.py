@@ -370,8 +370,10 @@ class MADDPG:
             })
             self.replay_buffer.add(dummy_data)
             self.replay_buffer.loads(folder_path)
+            self.replay_buffer.sampler.beta = INITIAL_BETA
             print(f"Replay Buffer Length : {len(self.replay_buffer)}")
             print(f"First Sample : {self.replay_buffer.sample()}")
+            print(f"Replab Buffer PER Beta : {self.replay_buffer.sampler.beta}")
             self.replay_buffer_initialized = True
 
         if POPULATING_REPLAY_BUFFER:
