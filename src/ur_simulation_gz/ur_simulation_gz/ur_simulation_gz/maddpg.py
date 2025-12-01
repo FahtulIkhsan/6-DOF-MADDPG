@@ -55,7 +55,7 @@ POLYAK_TAU = 1e-3
 ACTOR_LR = 1e-4  # Learning rate
 ACTOR_WEIGHT_DECAY = 0.0
 CRITIC_LR = 1e-3
-CRITIC_WEIGHT_DECAY = 0.0
+CRITIC_WEIGHT_DECAY = 1e-5
 EXPLORE_ANNEALING_STEPS = 20000
 MAX_FRAME = 100
 MAX_EPISODE = 300
@@ -94,6 +94,30 @@ class MADDPG:
             
             print(f"Initialized weights for: {m}")
 
+    def _weight_decay_params(model):
+        decay_params = []
+        no_decay_params = []
+
+        # We iterate parameters directly. 
+        # Because TensorDictParams flattens them, this is the safest way.
+        for name, param in model.named_parameters():
+
+            # 1. Biases always go to No Decay
+            if "bias" in name:
+                no_decay_params.append(param)
+
+            # 2. LayerNorm goes to No Decay
+            #    Because n_agents=6 and share_params=False, the parameters is stacked. That's why LayerNorm become 1D -> 2D
+            #    IMPORTANT : If share_params=True, you need to adjust the ndim value threshold
+            elif param.ndim < 3:
+                no_decay_params.append(param)
+
+            # 3. Everything else (2D matrices, etc.) -> Decay
+            else:
+                decay_params.append(param)
+
+        return decay_params, no_decay_params
+ 
     def __init__(self, target_location=[0.456, 0.213, 0.781]) :
         self.target_location = target_location
         self.replay_buffer_initialized = False
@@ -190,6 +214,11 @@ class MADDPG:
 
     critic_net.apply(_xavier_init_weights)
 
+    print(f"Critic network : {critic_net}")
+    critic_decay_params, critic_no_decay_params = _weight_decay_params(critic_net)
+    print(f"Critic decay params : {critic_decay_params}")
+    print(f"Critic no decay params : {critic_no_decay_params}")
+
     critic_module = TensorDictModule(
         module=critic_net,
         in_keys="obs_action",
@@ -231,7 +260,9 @@ class MADDPG:
             loss_module.actor_network_params.flatten_keys().values(), lr=ACTOR_LR, weight_decay=ACTOR_WEIGHT_DECAY
         ),
         "loss_value": torch.optim.AdamW(
-            loss_module.value_network_params.flatten_keys().values(), lr=CRITIC_LR, weight_decay=CRITIC_WEIGHT_DECAY
+            [{"params" : critic_decay_params, "weight_decay" : CRITIC_WEIGHT_DECAY}, 
+             {"params" : critic_no_decay_params, "weight_decay" : 0.0}], 
+             lr=CRITIC_LR
         )
     }
 
@@ -433,6 +464,7 @@ class MADDPG:
                 
                 if loss_name == "loss_actor":
                     loss = loss.mean()
+                    print(f"{loss_name} : {loss}")
                     loss.backward()
 
                     loss_raw = loss.item()
@@ -442,6 +474,7 @@ class MADDPG:
                 elif loss_name == "loss_value":
                     loss = loss * weight
                     loss = loss.mean()
+                    print(f"{loss_name} : {loss}")
                     loss.backward()
 
                     loss_raw = loss.item()
