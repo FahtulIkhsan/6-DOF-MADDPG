@@ -67,7 +67,7 @@ include CMakeFiles/ament_cmake_python_build_ur_simulation_gz_egg.dir/compiler_de
 include CMakeFiles/ament_cmake_python_build_ur_simulation_gz_egg.dir/progress.make
 
 CMakeFiles/ament_cmake_python_build_ur_simulation_gz_egg:
-	cd /home/bejobarokah/thesis/build/ur_simulation_gz/ament_cmake_python/ur_simulation_gz && /usr/bin/python3 setup.py egg_info
+	cd /home/bejobarokah/thesis/build/ur_simulation_gz/ament_cmake_python/ur_simulation_gz && /home/bejobarokah/thesis/.venv/bin/python3 setup.py egg_info
 
 ament_cmake_python_build_ur_simulation_gz_egg: CMakeFiles/ament_cmake_python_build_ur_simulation_gz_egg
 ament_cmake_python_build_ur_simulation_gz_egg: CMakeFiles/ament_cmake_python_build_ur_simulation_gz_egg.dir/build.make

@@ -26,7 +26,7 @@ import json
 import sys
 
 # Seed
-seed = 112
+seed = 37
 torch.manual_seed(seed)
 
 rng = np.random.default_rng(seed)
@@ -56,13 +56,13 @@ ACTOR_LR = 1e-4  # Learning rate
 ACTOR_WEIGHT_DECAY = 0.0
 CRITIC_LR = 1e-3
 CRITIC_WEIGHT_DECAY = 1e-4
-EXPLORE_ANNEALING_STEPS = 30000
+EXPLORE_ANNEALING_STEPS = 25000
 MAX_FRAME = 100
-MAX_EPISODE = 400
+MAX_EPISODE = 500
 ALPHA = 0.4
 INITIAL_BETA = 0.4
 FINAL_BETA = 1.0
-BETA_ANNEALING_STEPS = 39000
+BETA_ANNEALING_STEPS = 49000
 SIGMA_INIT = 0.9
 SIGMA_END = 0.03
 
@@ -117,12 +117,22 @@ class MADDPG:
                 decay_params.append(param)
 
         return decay_params, no_decay_params
+    
+    def _load_replay_buffer(replay_buffer):
+        replay_buffer.loads(folder_path)
+        replay_buffer.sampler.alpha = ALPHA
+        replay_buffer.sampler.beta = INITIAL_BETA
+        print(f"Replay Buffer Length : {len(replay_buffer)}")
+        print(f"First Observation Data : {replay_buffer[0]["observation"]}")
+        print(f"{MINIMUM_BUFFER_SIZE//2} Observation Data : {replay_buffer[MINIMUM_BUFFER_SIZE//2]["observation"]}")
+        print(f"First Sample : {replay_buffer.sample()}")
+        print(f"Replay Buffer PER Alpha : {replay_buffer.sampler.alpha}")
+        print(f"Replay Buffer PER Beta : {replay_buffer.sampler.beta}")
  
     def __init__(self, target_location=[0.456, 0.213, 0.781]) :
         self.target_location = target_location
-        self.replay_buffer_initialized = False
         self.current_episode = 0
-        self.anneal_frame = 0
+        self.beta_anneal_frame = 0
         self.frame = 0
         self.done = False
         self.terminated = False
@@ -144,6 +154,12 @@ class MADDPG:
         self.current_episode_loss_value = []
         self.loss_actor_data = []
         self.loss_value_data = []
+        self.current_episode_pred_value = []
+        self.current_episode_target_value = []
+        self.pred_value_data = []
+        self.target_value_data = []
+        self.current_episode_td_error = []
+        self.td_error_data = []
 
     MLP_kwargs = {"norm_class": torch.nn.LayerNorm,
                   "norm_kwargs": {"normalized_shape": NETWORK_SIZE}}
@@ -243,6 +259,9 @@ class MADDPG:
         transform=lambda x: x.to(device)
     )
 
+    if not POPULATING_REPLAY_BUFFER:
+        _load_replay_buffer(replay_buffer)
+
     loss_module = DDPGLoss(
         actor_network=actor,
         value_network=critic,
@@ -319,21 +338,13 @@ class MADDPG:
 
         if abs(current_dist) - 0.03 <= 0:
             reward = 40
+            self.done = True
             self.terminated = True
 
         if not POPULATING_REPLAY_BUFFER and self.frame >= (MAX_FRAME - 1):
-            self.terminated = True
-        
-        if not POPULATING_REPLAY_BUFFER:
-            if self.current_episode == (MAX_EPISODE - 1) and self.frame == (MAX_FRAME - 1):
-                self.done = True
-            elif self.current_episode >= (MAX_EPISODE):
-                self.done = True
-        else:
-            if len(self.replay_buffer) >= (MINIMUM_BUFFER_SIZE - 1):
-                self.done = True
+            self.done = True
 
-        if len(self.replay_buffer) >= MINIMUM_BUFFER_SIZE:
+        if not POPULATING_REPLAY_BUFFER:
             self.current_episode_rewards.append(reward)
 
         print(f"Reward : {reward}")
@@ -385,31 +396,6 @@ class MADDPG:
         return action
     
     def store(self, new_observations, result_code):
-        if not POPULATING_REPLAY_BUFFER and not self.replay_buffer_initialized:
-            dummy_data = TensorDict({
-                # Keys from the general metadata
-                "observation": torch.zeros((NUM_AGENTS, OBS_DIMS), dtype=torch.float32),
-                "action": torch.zeros((NUM_AGENTS, ACTION_DIM), dtype=torch.float32),
-                "param": torch.zeros((NUM_AGENTS, ACTION_DIM), dtype=torch.float32),
-                # Nested TensorDict for the 'next' key
-                "next": TensorDict({
-                    # Keys from the 'next' metadata
-                    "observation": torch.zeros((NUM_AGENTS, OBS_DIMS), dtype=torch.float32),
-                    "reward": torch.zeros((NUM_AGENTS, 1), dtype=torch.float32),
-                    "terminated": torch.zeros((NUM_AGENTS, 1), dtype=torch.bool),
-                    "done": torch.zeros((NUM_AGENTS, 1), dtype=torch.bool),
-                }),
-            })
-            self.replay_buffer.add(dummy_data)
-            self.replay_buffer.loads(folder_path)
-            self.replay_buffer.sampler.alpha = ALPHA
-            self.replay_buffer.sampler.beta = INITIAL_BETA
-            print(f"Replay Buffer Length : {len(self.replay_buffer)}")
-            print(f"First Sample : {self.replay_buffer.sample()}")
-            print(f"Replab Buffer PER Alpha : {self.replay_buffer.sampler.alpha}")
-            print(f"Replab Buffer PER Beta : {self.replay_buffer.sampler.beta}")
-            self.replay_buffer_initialized = True
-
         if POPULATING_REPLAY_BUFFER:
             self.update_observations_running_statistics(new_observations)
             self.frame += 1
@@ -439,6 +425,7 @@ class MADDPG:
         if len(self.replay_buffer) > MINIMUM_BUFFER_SIZE:
             self.frame += 1
             subdata = self.replay_buffer.sample(BATCH_SIZE)
+            # Iterate over batch data and standardize the observations
             for i, data in enumerate(subdata):
                 obs = self.standardize_observations(data["observation"][0].tolist())
                 tens_obs = self.list_to_tensor(obs)
@@ -448,6 +435,18 @@ class MADDPG:
                 data.set(("next", "observation"), tens_next_obs, inplace=True)
             weight = subdata["_weight"].unsqueeze(-1)
             loss_vals = self.loss_module(subdata)
+
+            if not POPULATING_REPLAY_BUFFER and (self.current_episode < 3 or self.current_episode > (MAX_EPISODE - 3)):
+                print(f"Loss Vals : {loss_vals}")
+
+            print(f"td_error : {loss_vals["td_error"].abs().mean(dim=0).tolist()}")
+            print(f"pred_value : {loss_vals["pred_value"].mean(dim=0).tolist()}")
+            print(f"target_value : {loss_vals["target_value"].mean(dim=0).tolist()}")
+            print(f"loss_actor : {loss_vals["loss_actor"].mean(dim=0).tolist()}")
+            self.current_episode_td_error.append(loss_vals["td_error"].abs().mean(dim=0).tolist())
+            self.current_episode_pred_value.append(loss_vals["pred_value"].mean(dim=0).tolist())
+            self.current_episode_target_value.append(loss_vals["target_value"].mean(dim=0).tolist())
+            self.current_episode_loss_actor.append(loss_vals["loss_actor"].mean(dim=0).tolist())
 
             if IS_MADDPG:
                 # Since there 6 agents with different td_error, find the td_error mean for the sample
@@ -464,21 +463,18 @@ class MADDPG:
                 
                 if loss_name == "loss_actor":
                     loss = loss.mean()
-                    print(f"{loss_name} : {loss}")
                     loss.backward()
-
-                    loss_raw = loss.item()
-                    self.current_episode_loss_actor.append(loss_raw)
 
                     torch.nn.utils.clip_grad_norm_(self.loss_module.actor_network_params.flatten_keys().values(), max_norm=1.0)
                 elif loss_name == "loss_value":
                     loss = loss * weight
-                    loss = loss.mean()
-                    print(f"{loss_name} : {loss}")
-                    loss.backward()
 
-                    loss_raw = loss.item()
-                    self.current_episode_loss_value.append(loss_raw)
+                    loss_data = loss
+                    self.current_episode_loss_value.append(loss_data.mean(dim=0).tolist())
+                    print(f"{loss_name} : {loss_data.mean(dim=0).tolist()}")
+
+                    loss = loss.mean()
+                    loss.backward()
                     
                     torch.nn.utils.clip_grad_norm_(self.loss_module.value_network_params.flatten_keys().values(), max_norm=1.0)
                 optimizer.step()
@@ -497,31 +493,44 @@ class MADDPG:
 
         print(f"Episode : {self.current_episode}")
         print(f"Frame : {self.frame}")
+        print(f"PER Beta : {self.replay_buffer.sampler.beta}")
+        print(f"Explore Sigma : {self.exploration_module.sigma}")
 
     def end_frame_check(self):
-        if POPULATING_REPLAY_BUFFER and self.frame >= (5*MAX_FRAME):
-            return 3
-        elif self.done:
-            return 2
-        elif self.terminated:
-            return 1
-        else:
-            return 0
+        if POPULATING_REPLAY_BUFFER:
+            if len(self.replay_buffer) >= MINIMUM_BUFFER_SIZE:
+                return 2
+            elif self.done:
+                return 3
+            elif self.frame >= (5*MAX_FRAME):
+                return 3
+        elif not POPULATING_REPLAY_BUFFER:
+            if self.current_episode == (MAX_EPISODE - 1) and self.frame == MAX_FRAME:
+                return 2
+            elif self.current_episode >= MAX_EPISODE:
+                return 2
+            elif self.done:
+                return 1
+            
+        return 0
         
     def new_episode(self):
         self.current_episode += 1
-        self.anneal_frame += MAX_FRAME
+        self.beta_anneal_frame += MAX_FRAME
 
         self.reward_data.append(self.current_episode_rewards)
         self.frame_num_data.append(self.frame)
         self.loss_actor_data.append(self.current_episode_loss_actor)
         self.loss_value_data.append(self.current_episode_loss_value)
+        self.pred_value_data.append(self.current_episode_pred_value)
+        self.target_value_data.append(self.current_episode_target_value)
+        self.td_error_data.append(self.current_episode_td_error)
 
-        self.exploration_module.step(self.anneal_frame)
+        self.exploration_module.step(MAX_FRAME)
 
-        if self.anneal_frame < BETA_ANNEALING_STEPS:
+        if self.beta_anneal_frame < BETA_ANNEALING_STEPS:
             # Linearly increase beta from its initial value to the final value
-            current_beta = INITIAL_BETA + (FINAL_BETA - INITIAL_BETA) * (self.anneal_frame / BETA_ANNEALING_STEPS)
+            current_beta = INITIAL_BETA + (FINAL_BETA - INITIAL_BETA) * (self.beta_anneal_frame / BETA_ANNEALING_STEPS)
 
             # Directly update the beta attribute of the underlying sampler
             self.replay_buffer.sampler.beta = current_beta
@@ -532,7 +541,11 @@ class MADDPG:
         self.current_episode_rewards = []
         self.current_episode_loss_actor = []
         self.current_episode_loss_value = []
+        self.current_episode_pred_value = []
+        self.current_episode_target_value = []
+        self.current_episode_td_error = []
         self.frame = 0
+        self.done = False
         self.terminated = False
 
     def terminate(self):
@@ -541,18 +554,30 @@ class MADDPG:
             self.frame_num_data.append(self.frame)
             self.loss_actor_data.append(self.current_episode_loss_actor)
             self.loss_value_data.append(self.current_episode_loss_value)
+            self.pred_value_data.append(self.current_episode_pred_value)
+            self.target_value_data.append(self.current_episode_target_value)
+            self.td_error_data.append(self.current_episode_td_error)
             df_reward = pd.DataFrame(self.reward_data)
             df_frame = pd.DataFrame(self.frame_num_data)
             df_loss_actor = pd.DataFrame(self.loss_actor_data)
             df_loss_value = pd.DataFrame(self.loss_value_data)
+            df_pred_value = pd.DataFrame(self.pred_value_data)
+            df_target_value = pd.DataFrame(self.target_value_data)
+            df_td_error = pd.DataFrame(self.td_error_data)
             df_reward.to_parquet('reward_data.parquet', engine='pyarrow', compression='gzip')
             df_frame.to_parquet('frame_data.parquet', engine='pyarrow', compression='gzip')
             df_loss_actor.to_parquet('loss_actor.parquet', engine='pyarrow', compression='gzip')
             df_loss_value.to_parquet('loss_value.parquet', engine='pyarrow', compression='gzip')
+            df_pred_value.to_parquet('pred_value.parquet', engine='pyarrow', compression='gzip')
+            df_target_value.to_parquet('target_value.parquet', engine='pyarrow', compression='gzip')
+            df_td_error.to_parquet('td_error.parquet', engine='pyarrow', compression='gzip')
             df_reward.to_csv('reward_data.csv', mode='a', header=False, index=False)
             df_frame.to_csv('frame_data.csv', mode='a', header=False, index=False)
             df_loss_actor.to_csv('loss_actor_data.csv', mode='a', header=False, index=False)
             df_loss_actor.to_csv('loss_value_data.csv', mode='a', header=False, index=False)
+            df_pred_value.to_csv('pred_value_data.csv', mode='a', header=False, index=False)
+            df_target_value.to_csv('target_value_data.csv', mode='a', header=False, index=False)
+            df_td_error.to_csv('td_error_data.csv', mode='a', header=False, index=False)
         else:
             self.replay_buffer.dumps(folder_path)
 

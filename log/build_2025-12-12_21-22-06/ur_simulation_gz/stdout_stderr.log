@@ -11,14 +11,14 @@
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
 -- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
--- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Found Python3: /home/bejobarokah/thesis/.venv/bin/python3 (found version "3.12.3") found components: Interpreter 
 -- Override CMake install command with custom implementation using symlinks instead of copying resources
 -- Found rclpy: 7.1.4 (/opt/ros/jazzy/share/rclpy/cmake)
 -- Found launch_testing_ament_cmake: 3.4.4 (/opt/ros/jazzy/share/launch_testing_ament_cmake/cmake)
 -- Found python_cmake_module: 0.11.1 (/opt/ros/jazzy/share/python_cmake_module/cmake)
--- Found PythonExtra: /usr/bin/python3  
+-- Found PythonExtra: /home/bejobarokah/thesis/.venv/bin/python3  
 -- Found ament_cmake_pytest: 2.5.4 (/opt/ros/jazzy/share/ament_cmake_pytest/cmake)
--- Configuring done (1.3s)
+-- Configuring done (0.8s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/bejobarokah/thesis/build/ur_simulation_gz
 Built target ament_cmake_python_symlink_ur_simulation_gz
