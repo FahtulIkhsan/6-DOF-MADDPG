@@ -26,7 +26,7 @@ import json
 import sys
 
 # Seed
-seed = 37
+seed = 0
 torch.manual_seed(seed)
 
 rng = np.random.default_rng(seed)
@@ -109,7 +109,10 @@ class MADDPG:
             # 2. LayerNorm goes to No Decay
             #    Because n_agents=6 and share_params=False, the parameters is stacked. That's why LayerNorm become 1D -> 2D
             #    IMPORTANT : If share_params=True, you need to adjust the ndim value threshold
-            elif param.ndim < 3:
+            elif not SHARE_PARAMETERS_POLICY and param.ndim < 3:
+                no_decay_params.append(param)
+
+            elif SHARE_PARAMETERS_POLICY and param.ndim < 2:
                 no_decay_params.append(param)
 
             # 3. Everything else (2D matrices, etc.) -> Decay
@@ -125,7 +128,15 @@ class MADDPG:
         print(f"Replay Buffer Length : {len(replay_buffer)}")
         print(f"First Observation Data : {replay_buffer[0]["observation"]}")
         print(f"{MINIMUM_BUFFER_SIZE//2} Observation Data : {replay_buffer[MINIMUM_BUFFER_SIZE//2]["observation"]}")
-        print(f"First Sample : {replay_buffer.sample()}")
+        print(f"First Sample : {replay_buffer.sample(BATCH_SIZE)}")
+        sample = replay_buffer.sample()
+        print(f"Sample Observation : {sample[0]["observation"]}")
+        print(f"Sample Param : {sample[0]["param"]}")
+        print(f"Sample Action : {sample[0]["action"]}")
+        print(f"Sample Next Observation : {sample[0]["next"]["observation"]}")
+        print(f"Sample Next Reward : {sample[0]["next"]["reward"]}")
+        print(f"Sample Next Terminated : {sample[0]["next"]["terminated"]}")
+        print(f"Sample Next Done : {sample[0]["next"]["done"]}")
         print(f"Replay Buffer PER Alpha : {replay_buffer.sampler.alpha}")
         print(f"Replay Buffer PER Beta : {replay_buffer.sampler.beta}")
  
@@ -390,6 +401,8 @@ class MADDPG:
             act = torch.tensor(action, device=device, dtype=torch.float32)
             if IS_MADDPG:
                 act = act.unsqueeze(1)
+            if not IS_MADDPG:
+                act = act.unsqueeze(0)
             self.action_result.set("action", act, inplace=True)
             print(f"Uniform Action: {self.action_result["action"]}")
 
@@ -415,9 +428,6 @@ class MADDPG:
         replay_buffer_data.set("next", next_data)
 
         self.replay_buffer.add(replay_buffer_data)
-
-        # print(f"Observation: {replay_buffer_data["observation"][0]}")
-        # print(f"Next Observation: {replay_buffer_data["next"]["observation"][0]}")
             
         # print(f"Added data to replay buffer : {replay_buffer_data}")
     
@@ -437,6 +447,7 @@ class MADDPG:
             loss_vals = self.loss_module(subdata)
 
             if not POPULATING_REPLAY_BUFFER and (self.current_episode < 3 or self.current_episode > (MAX_EPISODE - 3)):
+                # print(f"_weight : {weight}")
                 print(f"Loss Vals : {loss_vals}")
 
             print(f"td_error : {loss_vals["td_error"].abs().mean(dim=0).tolist()}")
