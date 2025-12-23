@@ -446,10 +446,6 @@ class MADDPG:
             weight = subdata["_weight"].unsqueeze(-1)
             loss_vals = self.loss_module(subdata)
 
-            if not POPULATING_REPLAY_BUFFER and (self.current_episode < 3 or self.current_episode > (MAX_EPISODE - 3)):
-                # print(f"_weight : {weight}")
-                print(f"Loss Vals : {loss_vals}")
-
             print(f"td_error : {loss_vals["td_error"].abs().mean(dim=0).tolist()}")
             print(f"pred_value : {loss_vals["pred_value"].mean(dim=0).tolist()}")
             print(f"target_value : {loss_vals["target_value"].mean(dim=0).tolist()}")
